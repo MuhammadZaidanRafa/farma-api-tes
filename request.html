@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmagitechs — Request Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #eef2f5;
+            color: #333;
+            font-size: 13px;
+        }
+
+        /* Navbar Utama */
+        .navbar {
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .navbar .logout-btn {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .navbar .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Konten Utama & Struktur SPA */
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            background: white;
+            padding: 24px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .spa-page {
+            display: none;
+        }
+
+        .spa-page.active {
+            display: block;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        .header-section h2 {
+            font-size: 20px;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        /* Tombol Utama */
+        .btn {
+            padding: 8px 14px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn-blue { background-color: #2563eb; color: white; }
+        .btn-blue:hover { background-color: #1d4ed8; }
+        .btn-gray { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
+        .btn-gray:hover { background-color: #e5e7eb; }
+        .btn-orange { background-color: #ea580c; color: white; }
+        .btn-orange:hover { background-color: #c2410c; }
+
+        /* Filter Section */
+        .filter-section {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        .filter-section input[type="date"],
+        .filter-section select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            outline: none;
+            font-size: 13px;
+            min-width: 160px;
+            background-color: white;
+            color: #4b5563;
+        }
+
+        /* Tabel Data */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f9fafb;
+            color: #4b5563;
+            font-weight: 600;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 12px;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        tr:hover { background-color: #f9fafb; }
+
+        /* Badge Status */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status-waiting { background-color: #fef3c7; color: #d97706; }
+        .status-accepted { background-color: #dcfce7; color: #15803d; }
+
+        /* Tombol Aksi Tabel */
+        .action-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-view { background-color: #0ea5e9; }
+        .btn-view:hover { background-color: #0284c7; }
+        .btn-edit { background-color: #ea580c; }
+        .btn-edit:hover { background-color: #c2410c; }
+
+        /* Pagination */
+        .pagination-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .pagination-btns button {
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #374151;
+            font-size: 12px;
+        }
+        .pagination-btns button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Form & Detail Styling */
+        .form-container { max-width: 800px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .form-group label span { color: #dc2626; }
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; outline: none; }
+        .form-control:focus { border-color: #2563eb; }
+        
+        /* Editor Box */
+        .editor-container { border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden; }
+        .editor-header { background-color: #f9fafb; padding: 6px 12px; border-bottom: 1px solid #d1d5db; }
+        .editor-toolbar button { background: none; border: none; padding: 4px 8px; font-size: 13px; cursor: pointer; color: #4b5563; font-weight: bold; }
+        .editor-textarea { width: 100%; height: 160px; padding: 12px; border: none; outline: none; resize: vertical; font-size: 13px; }
+
+        /* Detail Grid View */
+        .detail-grid { display: grid; grid-template-columns: 180px 1fr; gap: 16px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #f3f4f6; }
+        .detail-label { font-weight: 600; color: #4b5563; }
+        .detail-value { color: #111827; }
+        .content-box { background-color: #f9fafb; padding: 14px; border: 1px solid #e5e7eb; border-radius: 4px; min-height: 120px; line-height: 1.6; margin-top: 8px; }
+
+        .footer-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <span>Farmagitechs — Request</span>
+        <a href="index.html" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="container">
+
+        <div id="page-list" class="spa-page active">
+            <div class="header-section">
+                <h2>List Request</h2>
+                <button class="btn btn-blue" onclick="navigateTo('page-add')">+ Tambah Request</button>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-group"><label>Start Date</label><input type="date" id="filter-start-date" placeholder="dd/mm/yyyy"></div>
+                <div class="filter-group"><label>End Date</label><input type="date" id="filter-end-date" placeholder="dd/mm/yyyy"></div>
+                <div class="filter-group">
+                    <label>Product</label>
+                    <select id="filter-product">
+                        <option value="">Semua Product</option>
+                        <option value="SIMRS">SIMRS</option>
+                        <option value="E-Doc">E-Doc</option>
+                        <option value="Asuhan Keperawatan">Asuhan Keperawatan</option>
+                        <option value="Pendaftaran Online">Pendaftaran Online</option>
+                    </select>
+                </div>
+                <button class="btn btn-blue" onclick="applyFilters()">Filter</button>
+                <button class="btn btn-gray" onclick="resetFilters()">Reset</button>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th>Title</th>
+                            <th>Hospital Name</th>
+                            <th>Product</th>
+                            <th>Status</th>
+                            <th>Request Time</th>
+                            <th style="width: 140px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-section">
+                <div class="pagination-btns"><button id="btn-prev" onclick="changePage(-1)">&laquo; Previous</button></div>
+                <span id="pagination-info">Page 1 of 106 (1056 total)</span>
+                <div class="pagination-btns"><button id="btn-next" onclick="changePage(1)">Next &raquo;</button></div>
+            </div>
+        </div>
+
+        <div id="page-add" class="spa-page">
+            <div class="header-section">
+                <h2>Tambah Request Baru</h2>
+            </div>
+            <div class="form-container">
+                <form id="form-add" onsubmit="handleCreateRequest(event)">
+                    <div class="form-group">
+                        <label>Product <span>*</span></label>
+                        <select class="form-control" id="add-product" required>
+                            <option value="">-- Pilih Product --</option>
+                            <option value="SIMRS">SIMRS</option>
+                            <option value="E-Doc">E-Doc</option>
+                            <option value="Asuhan Keperawatan">Asuhan Keperawatan</option>
+                            <option value="Pendaftaran Online">Pendaftaran Online</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Title <span>*</span></label>
+                        <input type="text" class="form-control" id="add-title" placeholder="Masukkan judul request" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Content <span>*</span></label>
+                        <div class="editor-container">
+                            <div class="editor-header">
+                                <div class="editor-toolbar">
+                                    <button type="button">B</button><button type="button" style="font-style:italic;">I</button><button type="button" style="text-decoration:underline;">U</button>
+                                </div>
+                            </div>
+                            <textarea class="editor-textarea" id="add-content" placeholder="Isi deskripsi lengkap request..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="footer-actions">
+                        <button type="button" class="btn btn-gray" onclick="navigateTo('page-list')">Batal</button>
+                        <button type="submit" class="btn btn-blue">Simpan Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="page-detail" class="spa-page">
+            <div class="header-section">
+                <h2>Detail Informasi Request</h2>
+                <button class="btn btn-gray" onclick="navigateTo('page-list')">&larr; Kembali ke List</button>
+            </div>
+            <div class="form-container">
+                <div class="detail-grid">
+                    <div class="detail-label">Judul Request</div>
+                    <div class="detail-value" id="det-title" style="font-weight:bold; font-size:14px;">-</div>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-label">Hospital Name</div>
+                    <div class="detail-value" id="det-hospital">-</div>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-label">Produk</div>
+                    <div class="detail-value" id="det-product">-</div>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value" id="det-status">-</div>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-label">Waktu Request</div>
+                    <div class="detail-value" id="det-time">-</div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div class="detail-label">Deskripsi Isi Konten:</div>
+                    <div class="content-box" id="det-content">-</div>
+                </div>
+                <div class="footer-actions">
+                    <button class="btn btn-orange" id="btn-edit-from-detail">Edit Data Ini</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-edit" class="spa-page">
+            <div class="header-section">
+                <h2>Ubah / Edit Request</h2>
+            </div>
+            <div class="form-container">
+                <form id="form-edit" onsubmit="handleUpdateRequest(event)">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-group">
+                        <label>Product <span>*</span></label>
+                        <select class="form-control" id="edit-product" required>
+                            <option value="SIMRS">SIMRS</option>
+                            <option value="E-Doc">E-Doc</option>
+                            <option value="Asuhan Keperawatan">Asuhan Keperawatan</option>
+                            <option value="Pendaftaran Online">Pendaftaran Online</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Title <span>*</span></label>
+                        <input type="text" class="form-control" id="edit-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Content <span>*</span></label>
+                        <div class="editor-container">
+                            <div class="editor-header">
+                                <div class="editor-toolbar">
+                                    <button type="button">B</button><button type="button" style="font-style:italic;">I</button><button type="button" style="text-decoration:underline;">U</button>
+                                </div>
+                            </div>
+                            <textarea class="editor-textarea" id="edit-content" required></textarea>
+                        </div>
+                    </div>
+                    <div class="footer-actions">
+                        <button type="button" class="btn btn-gray" onclick="navigateTo('page-list')">Batal</button>
+                        <button type="submit" class="btn btn-orange">Perbarui Data</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CONFIGURATION API SERVER ---
+        // Ganti URL ini dengan endpoint API backend riil Anda (misal: Express, PHP, Laravel, atau Mock API)
+        const API_BASE_URL = 'https://api.example.com/api/requests'; 
+
+        // State global data internal aplikasi
+        let currentPage = 1;
+        let totalPages = 106; 
+        let totalItems = 1056;
+        let currentData = []; 
+
+        // --- 1. SPA ROUTING NAVIGATION ENGINE ---
+        function navigateTo(pageId) {
+            document.querySelectorAll('.spa-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // --- 2. AJAX FETCH DATA FROM SERVER API ---
+        async function fetchRequestList() {
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            const product = document.getElementById('filter-product').value;
+
+            // Menyusun query string params untuk filtering & server-side pagination
+            let url = `${API_BASE_URL}?page=${currentPage}`;
+            if(startDate) url += `&start_date=${startDate}`;
+            if(endDate) url += `&end_date=${endDate}`;
+            if(product) url += `&product=${encodeURIComponent(product)}`;
+
+            try {
+                /* // KODE REAL API FETCH (Hapus komentar blok ini jika endpoint backend Anda sudah siap aktif)
+                const response = await fetch(url);
+                const json = await response.json();
+                currentData = json.data; 
+                totalPages = json.total_pages;
+                totalItems = json.total_items;
+                */
+
+                // MOCKUP SIMULASI DATA (Sesuai dengan isi screenshoot)
+                currentData = [
+                    { id: 1, title: "TESTING", hospital_name: "Farmagitechs", product: "SIMRS", status: "Waiting", request_time: "30/6/2026", content: "Isi konten pengujian modul utama" },
+                    { id: 2, title: "Test Done123", hospital_name: "Farmagitechs", product: "E-Doc", status: "Waiting", request_time: "30/6/2026", content: "Dokumentasi elektronik sistem rumah sakit" },
+                    { id: 3, title: "Judul request", hospital_name: "Farmagitechs", product: "E-Doc", status: "Waiting", request_time: "30/6/2026", content: "Deskripsi request kustomisasi e-doc" },
+                    { id: 4, title: "Judul request1245", hospital_name: "Farmagitechs", product: "E-Doc", status: "Waiting", request_time: "29/6/2026", content: "Revisi tambahan fitur integrasi" },
+                    { id: 5, title: "Antrian Pasien Online", hospital_name: "RSGM Soelastri", product: "Pendaftaran Online", status: "Waiting", request_time: "9/3/2026", content: "Sistem antrean pendaftaran mandiri pasien" },
+                    { id: 6, title: "Satusehat Update Encounter ( Regulasi 2026 )", hospital_name: "Farmagitechs", product: "SIMRS", status: "Accepted", request_time: "30/1/2026", content: "Sinkronisasi bridging Kemenkes Satusehat versi terbaru" },
+                    { id: 7, title: "Pembuatan Update Data Pengkajian", hospital_name: "Farmagitechs", product: "Asuhan Keperawatan", status: "Accepted", request_time: "30/1/2026", content: "Formulir rekam medis asuhan keperawatan digital" },
+                    { id: 8, title: "Satu Sehat Laboratorium ( Ganti Schema )", hospital_name: "Farmagitechs", product: "SIMRS", status: "Accepted", request_time: "26/1/2026", content: "Perubahan skema data hasil laborat" },
+                    { id: 9, title: "Bridging Smart Claim BPJS", hospital_name: "Farmagitechs", product: "SIMRS", status: "Waiting", request_time: "26/1/2026", content: "Modul klaim otomatis BPJS Kesehatan" },
+                    { id: 10, title: "Masterdata Shift dan penggunaan Shift di Jadwal Dokter", hospital_name: "Farmagitechs", product: "SIMRS", status: "Accepted", request_time: "21/1/2026", content: "Konfigurasi pembagian shift jaga tim dokter" }
+                ];
+                
+                renderTable(currentData);
+            } catch (error) {
+                console.error("Gagal memuat data dari API server:", error);
+                alert("Terjadi kesalahan koneksi saat mengambil data server.");
+            }
+        }
+
+        // --- 3. RENDER DATA KE ELEMEN TABEL HTML ---
+        function renderTable(items) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            if(items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Tidak ada data request ditemukan.</td></tr>`;
+                return;
+            }
+
+            items.forEach((item, index) => {
+                const badgeClass = item.status.toLowerCase() === 'accepted' ? 'status-accepted' : 'status-waiting';
+                const rowNumber = ((currentPage - 1) * 10) + (index + 1);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${rowNumber}</td>
+                    <td>${item.title}</td>
+                    <td>${item.hospital_name}</td>
+                    <td>${item.product}</td>
+                    <td><span class="status-badge ${badgeClass}">${item.status}</span></td>
+                    <td>${item.request_time}</td>
+                    <td class="action-btns">
+                        <button class="btn-action btn-view" onclick="openDetail(${item.id})">Lihat</button>
+                        <button class="btn-action btn-edit" onclick="openEdit(${item.id})">Edit</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update UI Informasi Halaman Pagination
+            document.getElementById('pagination-info').innerText = `Page ${currentPage} of ${totalPages} (${totalItems} total)`;
+            document.getElementById('btn-prev').disabled = (currentPage === 1);
+            document.getElementById('btn-next').disabled = (currentPage === totalPages);
+        }
+
+        // --- 4. AKSI: LIHAT DETAIL DATA ---
+        function openDetail(id) {
+            const item = currentData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('det-title').innerText = item.title;
+            document.getElementById('det-hospital').innerText = item.hospital_name;
+            document.getElementById('det-product').innerText = item.product;
+            document.getElementById('det-time').innerText = item.request_time;
+            document.getElementById('det-content').innerText = item.content;
+
+            const badgeClass = item.status.toLowerCase() === 'accepted' ? 'status-accepted' : 'status-waiting';
+            document.getElementById('det-status').innerHTML = `<span class="status-badge ${badgeClass}">${item.status}</span>`;
+
+            // Hubungkan tombol edit instan di dalam halaman detail
+            document.getElementById('btn-edit-from-detail').onclick = function() {
+                openEdit(item.id);
+            };
+
+            navigateTo('page-detail');
+        }
+
+        // --- 5. AKSI: BUKA DAN EDIT DATA ---
+        function openEdit(id) {
+            const item = currentData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('edit-id').value = item.id;
+            document.getElementById('edit-product').value = item.product;
+            document.getElementById('edit-title').value = item.title;
+            document.getElementById('edit-content').value = item.content;
+
+            navigateTo('page-edit');
+        }
+
+        // --- 6. API SUBMIT POST (TAMBAH REQUEST BARU) ---
+        async function handleCreateRequest(e) {
+            e.preventDefault();
+            const payload = {
+                product: document.getElementById('add-product').value,
+                title: document.getElementById('add-title').value,
+                content: document.getElementById('add-content').value,
+                hospital_name: "Farmagitechs", // default instansi login
+                status: "Waiting"
+            };
+
+            try {
+                /*
+                // KODE REAL API POST
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if(response.ok) { ... }
+                */
+                
+                alert("Sukses! Data Request Baru Berhasil Disimpan ke API Server (Simulasi).");
+                document.getElementById('form-add').reset();
+                currentPage = 1; 
+                fetchRequestList();
+                navigateTo('page-list');
+            } catch (error) {
+                alert("Gagal mengirim data baru ke server.");
+            }
+        }
+
+        // --- 7. API SUBMIT PUT (PERBARUI / UPDATE DATA) ---
+        async function handleUpdateRequest(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const payload = {
+                product: document.getElementById('edit-product').value,
+                title: document.getElementById('edit-title').value,
+                content: document.getElementById('edit-content').value
+            };
+
+            try {
+                /*
+                // KODE REAL API PUT
+                const response = await fetch(`${API_BASE_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                */
+
+                alert(`Sukses! Data Request ID #${id} Berhasil Diperbarui di API Server (Simulasi).`);
+                fetchRequestList();
+                navigateTo('page-list');
+            } catch (error) {
+                alert("Gagal memperbarui data di server.");
+            }
+        }
+
+        // --- 8. FUNGSI PAGINASI & FILTER ---
+        function changePage(direction) {
+            currentPage += direction;
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            fetchRequestList();
+        }
+
+        function applyFilters() {
+            currentPage = 1;
+            fetchRequestList();
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            document.getElementById('filter-product').value = '';
+            currentPage = 1;
+            fetchRequestList();
+        }
+
+        // Memuat data otomatis saat halaman web pertama kali terbuka
+        window.onload = fetchRequestList;
+    </script>
+</body>
+</html>

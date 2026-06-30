@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farmagitechs - Login</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:#f1f5f9;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.container{
+    width:380px;
+    background:#fff;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 0 15px rgba(0,0,0,.15);
+}
+
+h2{
+    text-align:center;
+    color:#2563eb;
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:1px solid #ccc;
+    border-radius:5px;
+    outline:none;
+}
+
+input:focus{
+    border-color:#2563eb;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+button:disabled{
+    background:#9ca3af;
+    cursor:not-allowed;
+}
+
+#message{
+    margin-top:15px;
+    text-align:center;
+    font-weight:bold;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h2>Login</h2>
+
+<form id="loginForm">
+
+<input
+type="text"
+id="username"
+placeholder="Username"
+required>
+
+<input
+type="password"
+id="password"
+placeholder="Password"
+required>
+
+<button id="loginBtn" type="submit">
+Login
+</button>
+
+</form>
+
+<p id="message"></p>
+
+</div>
+
+<script>
+
+const BASE_URL = "http://192.168.0.199:9006";
+
+const form = document.getElementById("loginForm");
+const message = document.getElementById("message");
+const button = document.getElementById("loginBtn");
+
+form.addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    message.innerHTML = "";
+    button.disabled = true;
+    button.innerHTML = "Loading...";
+
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+
+    try{
+
+        const response = await fetch(
+            BASE_URL + "/api/keycloak_auth/login",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            }
+        );
+
+        const result = await response.json();
+
+        if(response.ok){
+
+            const token = result.data.token.access_token;
+
+            localStorage.setItem("access_token", token);
+
+            message.style.color = "green";
+            message.innerHTML = "Login berhasil. Mengalihkan...";
+
+            setTimeout(function(){
+
+                window.location.href = "request.html";
+
+            },1000);
+
+        }else{
+
+            message.style.color = "red";
+
+            if(result.message){
+                message.innerHTML = result.message;
+            }else{
+                message.innerHTML = "Username atau password salah.";
+            }
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+        message.style.color = "red";
+        message.innerHTML = "Gagal terhubung ke server.";
+
+    }finally{
+
+        button.disabled = false;
+        button.innerHTML = "Login";
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
