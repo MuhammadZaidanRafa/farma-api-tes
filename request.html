@@ -279,7 +279,7 @@
         // LOGOUT METHOD
         function handleLogout() {
             localStorage.removeItem('access_token');
-            navigateTo('page-login');
+            window.location.href = 'index.html';
         }
 
         // 2. FETCH DAFTAR PRODUK UNTUK DROPDOWN OPTIONS
@@ -504,7 +504,7 @@
                 fetchRequestList();
                 navigateTo('page-list');
             } else {
-                navigateTo('page-login');
+                window.location.href = 'index.html';
             }
         };
     </script>
